@@ -1,0 +1,34 @@
+﻿@model VM
+@{
+    ViewData["Title"] = "Ilość zamówień pogrupowanych po nazwie";
+}
+
+
+<h1>Ilość zamówień pogrupowanych po nazwie</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="I" asp-route-sortOrder="@ViewData["productNameSortParm"]">Product Name</a>
+
+            </th>
+            <th>
+                <a asp-action="I" asp-route-sortOrder="@ViewData["productCountSortParm"]">Product Count</a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.ProductsCount)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductCount)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+

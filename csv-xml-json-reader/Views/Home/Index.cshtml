@@ -1,8 +1,187 @@
-﻿@{
+﻿@model csv_xml_json_reader.ViewModels.VM
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<form method="post" enctype="multipart/form-data" asp-controller="Home" asp-action="Post">
+    <div class="form-group">
+        <div class="col-md-10">
+            <p>Wczytaj pliki csv,json,xml. Inne pliki będą ignorowane.</p>
+            <input type="file" name="files" multiple />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-10">
+            <input type="submit" value="Upload" />
+        </div>
+    </div>
+</form>
+
+<table class="table">
+    <tbody>
+        <tr>
+            <td>
+                a. Ilość zamówień
+            </td>
+            <td>
+                <form asp-action="A">
+                    <input type="submit" value="Click" class="btn btn-default" />
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                b. Ilość zamówień dla klienta o wskazanym identyfikatorze
+            </td>
+            <td>
+                <form asp-action="B">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input type="submit" value="Click" class="btn btn-default" />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input placeholder="Id" id="Id" name="Id" class="form-control" />
+                        </div>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                c. Łączna kwota zamówień
+            </td>
+            <td>
+                <form asp-action="C">
+                    <input type="submit" value="Click" class="btn btn-default" />
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                d. Łączna kwota zamówień dla klienta o wskazanym identyfikatorze
+            </td>
+            <td>
+                <form asp-action="D">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input type="submit" value="Click" class="btn btn-default" />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input placeholder="Id" id="Id" name="Id" class="form-control" />
+                        </div>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                e. Lista wszystkich zamówień
+            </td>
+            <td>
+                <form asp-action="E">
+                    <input type="submit" value="Click" class="btn btn-default" />
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                f. Lista zamówień dla klienta o wskazanym identyfikatorze
+            </td>
+            <td>
+                <form asp-action="F">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input type="submit" value="Click" class="btn btn-default" />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input placeholder="Id" id="Id" name="Id" class="form-control" />
+                        </div>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                g. Średnia wartość zamówienia
+            </td>
+            <td>
+                <form asp-action="G">
+                    <input type="submit" value="Click" class="btn btn-default" />
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                h. Średnia wartość zamówienia dla klienta o wskazanym identyfikatorze
+            </td>
+            <td>
+                <form asp-action="H">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input type="submit" value="Click" class="btn btn-default" />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input placeholder="Id" id="Id" name="Id" class="form-control" />
+                        </div>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                i. Ilość zamówień pogrupowanych po nazwie
+            </td>
+            <td>
+                <form asp-action="I">
+                    <input type="submit" value="Click" class="btn btn-default" />
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                j. Ilość zamówień pogrupowanych po nazwie dla klienta o wskazanym identyfikatorze
+            </td>
+            <td>
+                <form asp-action="J">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input type="submit" value="Click" class="btn btn-default" />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input placeholder="Id" id="Id" name="Id" class="form-control" />
+                        </div>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                k. Zamówienia w podanym przedziale cenowym
+            </td>
+            <td>
+                <form asp-action="K">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input placeholder="Od" id="FromValue" name="FromValue" class="form-control" />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-3 col-4">
+                            <input placeholder="Do" id="ToValue" name="ToValue" class="form-control" />
+                        </div>
+                        <div class="col-lg col-md col-sm col fastcreate-btn">
+                            <input type="submit" value="Create" class="btn btn-default" />
+
+                        </div>
+                    </div>
+                </form>
+            </td>
+        </tr>
+    </tbody>
+</table>
+

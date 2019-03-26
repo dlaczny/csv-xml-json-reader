@@ -1,0 +1,49 @@
+﻿@model VM
+@{
+    ViewData["Title"] = "Lista wszystkich zamówień";
+}
+
+<h1>Lista wszystkich zamówień</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="E" asp-route-sortOrder="@ViewData["clientIdSortParm"]">Client Id</a>
+
+            </th>
+            <th>
+                <a asp-action="E" asp-route-sortOrder="@ViewData["requestIdSortParm"]">Request Id</a>
+            </th>
+            <th>
+                Order Details
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.AllOrdersModel)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.clientId)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.requestId)
+                </td>
+                <td>
+                    @foreach (var item2 in item.OrderModelDetails)
+                    {
+                        <ul>
+                            <li>
+                                @Html.DisplayFor(modelItem => item2.name) @Html.DisplayFor(modelItem => item2.price)$ Quantity: @Html.DisplayFor(modelItem => item2.quantity)
+                            </li>
+                        </ul>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Esave">Zapisz do pliku</a>
+
+

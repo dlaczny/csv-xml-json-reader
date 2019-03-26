@@ -1,0 +1,13 @@
+﻿@model VM
+@{
+    ViewData["Title"] = "Error";
+}
+
+@foreach (var item in Model.Error)
+{
+    <h3>@item</h3>
+}
+
+<a asp-action="Index">Powrót</a>
+
+
