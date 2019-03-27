@@ -16,6 +16,7 @@ namespace csv_xml_json_reader.Models
 
         public DbSet<Order> Orders { get; set; }
 
-        public DbSet<OrderModel> OrderModel { get; set; }
+
+        //public DbSet<OrderModel> OrderModel { get; set; }
     }
 }

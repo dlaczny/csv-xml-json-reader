@@ -11,6 +11,7 @@ using System.Xml.Serialization;
 using CsvHelper;
 using csv_xml_json_reader.ViewModels;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace csv_xml_json_reader.Controllers
 {
@@ -24,6 +25,10 @@ namespace csv_xml_json_reader.Controllers
         public List<string> expecion_string = new List<string>();
 
         public int index;
+
+        //
+
+        //
 
         public HomeController(AppDbContext context, IOrderRepository orderRepository)
         {
@@ -341,16 +346,24 @@ namespace csv_xml_json_reader.Controllers
         public async Task<IActionResult> Post([Bind("Id,clientId,requestId,name,quantity,price")] Order order, List<IFormFile> files)
         {
 
+
+            List<Order> Templist = new List<Order>();
+
+
             bool exception_bool = false;
 
             Order oneOrderEx = new Order();
+
+            //
+           
+
 
             foreach (var file in files)
             {
 
                     if (file.FileName.Contains(".json"))
                     {
-                    index = 0;
+                        index = 0;
                         var result = string.Empty;
 
                         using (var reader = new StreamReader(file.OpenReadStream()))
@@ -358,80 +371,123 @@ namespace csv_xml_json_reader.Controllers
                             result = reader.ReadToEnd();
                         }
 
-                        var json = JsonConvert.DeserializeObject<OrderList>(result);
-
-                        foreach (var item in json.OrdersList.ToList())
+                        try
                         {
+                            var json = JsonConvert.DeserializeObject<OrderList>(result);
+
+
+                            foreach (var item in json.OrdersList.ToList())
+                            {
                             JsonXml(ref exception_bool, ref oneOrderEx, file, item);
+                            }
                         }
-                        await _context.SaveChangesAsync();
+                        catch
+                        {
+                            exception_bool = true;
+                            expecion_string.Add("Błąd w pliku " + file.FileName);
+                        }
+                        
                     }
 
                     if (file.FileName.Contains(".xml"))
                     {
-                    index = 0;
-                    var result = string.Empty;
+                        index = 0;
+                        var result = string.Empty;
 
                         using (var reader = new StreamReader(file.OpenReadStream()))
                         {
                             result = reader.ReadToEnd();
                         }
 
-                        XmlSerializer serializer = new XmlSerializer(typeof(List<Order>), new XmlRootAttribute("Orders"));
-
-                        StringReader stringReader = new StringReader(result);
-
-                        List<Order> productList = (List<Order>)serializer.Deserialize(stringReader);
-
-                        foreach (var item in productList)
+                        
+                        try
                         {
-                            JsonXml(ref exception_bool, ref oneOrderEx, file, item);
+                                XmlSerializer serializer = new XmlSerializer(typeof(List<request>), new XmlRootAttribute("requests"));
+
+                                StringReader stringReader = new StringReader(result);
+
+                                List<request> productList = (List<request>)serializer.Deserialize(stringReader);
+
+                                List<Order> orders = new List<Order>();
+
+                                foreach (var item in productList)
+                                {
+                                    orders.Add(new Order {
+                                        clientId = item.clientId,
+                                        requestId = item.requestId,
+                                        name = item.name,
+                                        quantity = item.quantity,
+                                        price = item.price
+                                    });
+                                }
+
+                                foreach (var item in orders)
+                                {
+                                    JsonXml(ref exception_bool, ref oneOrderEx, file, item);
+                                }
+                                await _context.SaveChangesAsync();
+                            }
+                        catch
+                        {
+                            exception_bool = true;
+                            expecion_string.Add("Błąd w pliku " + file.FileName);
                         }
-                    await _context.SaveChangesAsync();
-                    }
+            }
 
                 if (file.FileName.Contains(".csv"))
                 {
-                    index = 0;
-                    using (var reader = new StreamReader(file.OpenReadStream()))
-                    using (var csv = new CsvReader(reader))
+
+                    var regClientId = new Regex(@"^(?=.{1,6}$)^[a-zA-Z0-9]*$");
+                    var regName = new Regex(@"^(?=.{1,255}$)");
+
+
+
+                    try
                     {
-                        OrderNoId orderNoId = new OrderNoId();
-
-                        var records = csv.EnumerateRecords(orderNoId);
-
-                        foreach (var item in records)
+                        index = 0;
+                        using (var reader = new StreamReader(file.OpenReadStream()))
+                        using (var csv = new CsvReader(reader))
                         {
+                            OrderNoId orderNoId = new OrderNoId();
 
-                            try
+                            var records = csv.EnumerateRecords(orderNoId);
+
+                            foreach (var item in records)
                             {
-
-                                Order oneOrder = new Order();
-
-                                oneOrder.clientId = item.Client_Id;
-                                oneOrder.requestId = item.Request_id;
-                                oneOrder.quantity = item.Quantity;
-                                oneOrder.price = item.Price;
-                                oneOrder.name = item.Name;
 
                                 index++;
-                                oneOrderEx = oneOrder;
 
-                                _context.Add(oneOrder);
+                                if (regClientId.IsMatch(item.Client_Id) && item.Request_id != 0 && regName.IsMatch(item.Name))
+                                {
+                                    Order oneOrder = new Order();
 
-                                _context.SaveChanges();
-                            }
-                            catch
-                            {
-                                expecion_string.Add("Błąd w pliku " + file.FileName + " w rekordzie " + index.ToString());
+                                    oneOrder.clientId = item.Client_Id;
+                                    oneOrder.requestId = item.Request_id;
+                                    oneOrder.quantity = item.Quantity;
+                                    oneOrder.price = item.Price;
+                                    oneOrder.name = item.Name;
 
+                                    _context.Add(oneOrder);
 
-                                _context.Remove(oneOrderEx);
-                                exception_bool = true;
+                                    _context.SaveChanges();
+                                }
+                                else
+                                {
+                                    exception_bool = true;
+                                    expecion_string.Add("Błąd w pliku " + file.FileName + " w rekordzie " + index.ToString());
+
+                                }
                             }
                         }
+                        await _context.SaveChangesAsync();
                     }
-                    await _context.SaveChangesAsync();
+                    catch
+                    {
+                        exception_bool = true;
+                        expecion_string.Add("Błąd w pliku " + file.FileName);
+                    }
+
+                    
                 }
             }
 
@@ -448,11 +504,15 @@ namespace csv_xml_json_reader.Controllers
 
         private void JsonXml(ref bool exception_bool, ref Order oneOrderEx, IFormFile file, Order item)
         {
-            try
+
+            var regClientId = new Regex(@"^(?=.{1,6}$)^[a-zA-Z0-9]*$");
+            var regName = new Regex(@"^(?=.{1,255}$)");
+
+            index++;
+
+            if (regClientId.IsMatch(item.clientId) && item.requestId != 0 && regName.IsMatch(item.name))
             {
                 Order oneOrder = new Order();
-
-
 
                 oneOrder.clientId = item.clientId;
                 oneOrder.requestId = item.requestId;
@@ -460,21 +520,15 @@ namespace csv_xml_json_reader.Controllers
                 oneOrder.price = item.price;
                 oneOrder.name = item.name;
 
-
                 _context.Add(oneOrder);
-
-                index++;
-                oneOrderEx = oneOrder;
 
                 _context.SaveChanges();
             }
-            catch
+            else
             {
-
+                exception_bool = true;
                 expecion_string.Add("Błąd w pliku " + file.FileName + " w rekordzie " + index.ToString());
 
-                _context.Remove(oneOrderEx);
-                exception_bool = true;
             }
         }
 
