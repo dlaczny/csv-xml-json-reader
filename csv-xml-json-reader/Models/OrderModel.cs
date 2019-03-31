@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace csv_xml_json_reader.Models
 {
+    //W jaki sposób ma pokazywać i liczyć zamówienia
     public class OrderModel
     {
         [Key]

@@ -1,9 +1,10 @@
-﻿@model csv_xml_json_reader.ViewModels.VM
+﻿@model VM
 
 @{
     ViewData["Title"] = "Home Page";
 }
 
+<!--#region Wprowadzenie Plików  -->
 <form method="post" enctype="multipart/form-data" asp-controller="Home" asp-action="Post">
     <div class="form-group">
         <div class="col-md-10">
@@ -17,7 +18,9 @@
         </div>
     </div>
 </form>
+<!--#endregion -->
 
+<!--#region Tabela do generowania raportów-->
 <table class="table">
     <tbody>
         <tr>
@@ -184,4 +187,4 @@
         </tr>
     </tbody>
 </table>
-
+<!--#endregion -->

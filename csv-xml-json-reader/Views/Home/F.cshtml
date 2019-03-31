@@ -38,5 +38,5 @@
 </table>
 @foreach (var item in Model.AllOrdersModel.Take(1))
 {
-    <a asp-action="Fsave" asp-route-id="@item.clientId">Zapisz do pliku</a>
+    <a asp-action="Fsave" asp-route-clientId="@item.clientId">Zapisz do pliku</a>
 }

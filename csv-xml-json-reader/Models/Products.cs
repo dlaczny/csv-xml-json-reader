@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace csv_xml_json_reader.Models
 {
+    //Potrzebe dla raportu I oraz J
     public class Products
     {
         public string ProductName { get; set; }

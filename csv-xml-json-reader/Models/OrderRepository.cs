@@ -19,12 +19,25 @@ namespace csv_xml_json_reader.Models
             _appDbContext = appDbContext;
         }
 
+
+        //Zwraca listę zamówień
         public List<OrderModel> OrderModels(string id = null)
         {
-            List<OrderModel> list = OrderModelsMethod();
-            return list;
+            if (String.IsNullOrEmpty(id))
+            {
+                List<OrderModel> list = OrderModelsMethod();
+
+                return list;
+            }
+            else
+            {
+                List<OrderModel> list = OrderModelsMethod().Where(a => a.clientId == id).ToList();
+
+                return list;
+            }
         }
 
+        //Zwraca listę produktów
         public List<Products> ProductsCount(string id = null)
         {
             List<Products> ListOfNames = new List<Products>();
@@ -70,6 +83,7 @@ namespace csv_xml_json_reader.Models
             return ListOfNames;
         }
 
+        //Przekształca listę wejściową na listę w której pasujący clientID oraz requestID mogę mieć wiele zamówień
         private List<OrderModel> OrderModelsMethod()
         {
             List<OrderModel> list = new List<OrderModel>();
@@ -105,6 +119,7 @@ namespace csv_xml_json_reader.Models
             return list;
         }
 
+        //zwaca listę zamówień w przedziale cenowym 
         public List<OrderModel> OrdersInPriceRange(float a, float b)
         {
             List<OrderModel> list = OrderModelsMethod();
@@ -130,6 +145,7 @@ namespace csv_xml_json_reader.Models
             return list;
         }
 
+        //Zwraca sumę wartości zamówień wszystkich lub po id klienta
         public float TotalValueOfOrderss(string id = null)
         {
             if (String.IsNullOrEmpty(id))
@@ -151,6 +167,7 @@ namespace csv_xml_json_reader.Models
             return totalValue;
         }
 
+        //Zwraca średnią zamówień wszystkich lub po id klienta
         public float Average(string id = null)
         {
             List<OrderModel> list = OrderModelsMethod();

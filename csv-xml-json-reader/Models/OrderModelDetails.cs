@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace csv_xml_json_reader.Models
 {
+    //Detale dla pojedyńczego zamówienia
     public class OrderModelDetails
     {
 

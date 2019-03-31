@@ -34,5 +34,7 @@ namespace csv_xml_json_reader.ViewModels
 
         public string ToValue { get; set; }
 
+        public string id { get; set; }
+
     }
 }

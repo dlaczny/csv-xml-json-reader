@@ -22,12 +22,9 @@ namespace csv_xml_json_reader.Controllers
 
         private readonly IOrderRepository _orderRepository;
 
+        //zmienne do listowania błędów
         public List<string> expecion_string = new List<string>();
-
-        public int index;
-
-        //
-
+        public int indexOfOrder;
         //
 
         public HomeController(AppDbContext context, IOrderRepository orderRepository)
@@ -36,6 +33,12 @@ namespace csv_xml_json_reader.Controllers
             _orderRepository = orderRepository;
         }
 
+        public IActionResult Index(string sortOrder)
+        {
+            return (IActionResult)this.View((object)new VM() { });
+        }
+
+        #region Sortowanie
         private IQueryable<Order> SortOrder(string sortOrder)
         {
             ViewData["clientIdSortParm"] = sortOrder == "clientId" ? "clientId_desc" : "clientId";
@@ -117,12 +120,9 @@ namespace csv_xml_json_reader.Controllers
 
             return sortedOrders;
         }
+        #endregion
 
-        public IActionResult Index(string sortOrder)
-        {
-
-            return (IActionResult)this.View((object)new VM(){});
-        }
+        #region Generowanie Raportów
 
         //a. Ilość zamówień
         public IActionResult A()
@@ -198,16 +198,42 @@ namespace csv_xml_json_reader.Controllers
         public IActionResult Esave()
         {
 
-            string path = AppDomain.CurrentDomain.BaseDirectory + "download/listoforders.csv";
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
+            List<OrderNoId> orderNoIds = new List<OrderNoId>();
 
-            using (var writer = new StreamWriter(path))
-            using (var csv = new CsvWriter(writer))
+            foreach (var item in _context.Orders)
             {
-                csv.WriteRecords(_orderRepository.OrderModels());
+                OrderNoId orderNoId = new OrderNoId();
+
+                orderNoId.Client_Id = item.clientId;
+                orderNoId.Request_id = item.requestId;
+                orderNoId.Name = item.name;
+                orderNoId.Price = item.price;
+                orderNoId.Quantity = item.quantity;
+
+                orderNoIds.Add(orderNoId);
             }
 
-            return RedirectToAction("E");
+            int version = 0;
+
+            string file = path + "/listoforders.csv";
+
+            while (System.IO.File.Exists(file))
+            {
+                version++;
+
+                file = path + "/listoforders(" + version.ToString() + ").csv";
+            }
+
+
+            using (var writer = new StreamWriter(file))
+            using (var csv = new CsvWriter(writer))
+            {
+                csv.WriteRecords(orderNoIds);
+            }
+
+            return RedirectToAction("Index");
         }
 
         //f. Lista zamówień dla klienta o wskazanym identyfikatorze
@@ -215,7 +241,7 @@ namespace csv_xml_json_reader.Controllers
         {
             ViewData["requestIdSortParm"] = sortOrder == "requestId" ? "requestId_desc" : "requestId";
 
-            var sortedOrders = from s in _orderRepository.OrderModels()
+            var sortedOrders = from s in _orderRepository.OrderModels(id)
                                select s;
 
             switch (sortOrder)
@@ -240,16 +266,47 @@ namespace csv_xml_json_reader.Controllers
         public IActionResult Fsave(string clientId)
         {
 
-            string path = AppDomain.CurrentDomain.BaseDirectory + "download/listofordersid.csv";
+
+            //string path = AppDomain.CurrentDomain.BaseDirectory + "download/listofordersid.csv";
+
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
 
-            using (var writer = new StreamWriter(path))
-            using (var csv = new CsvWriter(writer))
+            List<OrderNoId> orderNoIds = new List<OrderNoId>();
+
+            foreach (var item in _context.Orders.ToList().Where(i => i.clientId == clientId))
             {
-                csv.WriteRecords(_orderRepository.OrderModels(clientId));
+                OrderNoId orderNoId = new OrderNoId();
+
+                orderNoId.Client_Id = item.clientId;
+                orderNoId.Request_id = item.requestId;
+                orderNoId.Name = item.name;
+                orderNoId.Price = item.price;
+                orderNoId.Quantity = item.quantity;
+
+                orderNoIds.Add(orderNoId);
             }
 
-            return RedirectToAction("F");
+            int version = 1;
+
+            string file = path + "/listoforders-" + clientId + ".csv";
+
+            while (System.IO.File.Exists(file))
+            {
+                version++;
+
+                file = path + "/listoforders-" + clientId + "(" + version.ToString() + ").csv";
+            }
+
+            using (var writer = new StreamWriter(file))
+            using (var csv = new CsvWriter(writer))
+            {
+                //csv.WriteRecords(_context.Orders.ToList().Where(i => i.clientId == clientId));
+                csv.WriteRecords(orderNoIds);
+
+            }
+
+            return RedirectToAction("Index");
         }
 
         //g. Średnia wartość zamówienia
@@ -285,6 +342,37 @@ namespace csv_xml_json_reader.Controllers
             });
         }
 
+        public IActionResult Isave()
+        {
+
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+
+            var products = from s in _orderRepository.ProductsCount()
+                               select s;
+
+
+            int version = 1;
+
+            string file = path + "/listofproducts.csv";
+
+            while (System.IO.File.Exists(file))
+            {
+                version++;
+
+                file = path + "/listofproducts(" + version.ToString() + ").csv";
+            }
+
+            using (var writer = new StreamWriter(file))
+            using (var csv = new CsvWriter(writer))
+            {
+                //csv.WriteRecords(_context.Orders.ToList().Where(i => i.clientId == clientId));
+                csv.WriteRecords(products);
+
+            }
+            return RedirectToAction("Index");
+        }
+
         //j. Ilość zamówień pogrupowanych po nazwie dla klienta o wskazanym identyfikatorze
         public IActionResult J(string sortOrder, string id)
         {
@@ -293,8 +381,40 @@ namespace csv_xml_json_reader.Controllers
 
             return (IActionResult)this.View((object)new VM()
             {
-                ProductsCount = sortedOrders.ToList()
+                ProductsCount = sortedOrders.ToList(),
+                id = id
             });
+        }
+
+        public IActionResult Jsave(string id)
+        {
+
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+
+            var products = from s in _orderRepository.ProductsCount(id)
+                           select s;
+
+
+            int version = 1;
+
+            string file = path + "/listofproducts-id-" + id +".csv";
+
+            while (System.IO.File.Exists(file))
+            {
+                version++;
+
+                file = path + "/listofproducts-id-" + id + "(" + version.ToString() + ").csv";
+            }
+
+            using (var writer = new StreamWriter(file))
+            using (var csv = new CsvWriter(writer))
+            {
+                //csv.WriteRecords(_context.Orders.ToList().Where(i => i.clientId == clientId));
+                csv.WriteRecords(products);
+
+            }
+            return RedirectToAction("Index");
         }
 
         //k. Zamówienia w podanym przedziale cenowym
@@ -304,45 +424,86 @@ namespace csv_xml_json_reader.Controllers
             ViewData["clientIdSortParm"] = sortOrder == "clientId" ? "clientId_desc" : "clientId";
             ViewData["requestIdSortParm"] = sortOrder == "requestId" ? "requestId_desc" : "requestId";
 
-
+            try
+            {
                 float a = float.Parse(FromValue, CultureInfo.InvariantCulture.NumberFormat);
 
                 float b = float.Parse(ToValue, CultureInfo.InvariantCulture.NumberFormat);
-  
+
+                var sortedOrders = from s in _orderRepository.OrdersInPriceRange(a, b)
+                                   select s;
+
+                switch (sortOrder)
+                {
+                    case "clientId":
+                        sortedOrders = sortedOrders.OrderBy(s => s.clientId);
+                        break;
+                    case "clientId_desc":
+                        sortedOrders = sortedOrders.OrderByDescending(s => s.clientId);
+                        break;
+                    case "requestId":
+                        sortedOrders = sortedOrders.OrderBy(s => s.requestId);
+                        break;
+                    case "requestId_desc":
+                        sortedOrders = sortedOrders.OrderByDescending(s => s.requestId);
+                        break;
+                    default:
+                        sortedOrders = sortedOrders.OrderBy(s => s.requestId);
+                        break;
+                }
+
+                return (IActionResult)View(new VM()
+                {
+                    AllOrdersModel = sortedOrders,
+                    FromValue = FromValue,
+                    ToValue = ToValue
+                });
+            }
+            catch
+            {
+                return RedirectToAction("Error", new { error_string = "Błędny zakres" });
+            }
+        }
+
+        public IActionResult Ksave(string FromValue, string ToValue)
+        {
+
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+            float a = float.Parse(FromValue, CultureInfo.InvariantCulture.NumberFormat);
+
+            float b = float.Parse(ToValue, CultureInfo.InvariantCulture.NumberFormat);
+
 
             var sortedOrders = from s in _orderRepository.OrdersInPriceRange(a, b)
                                select s;
 
-            switch (sortOrder)
+
+            int version = 1;
+
+            string file = path + "/listofordersbetween.csv";
+
+            while (System.IO.File.Exists(file))
             {
-                case "clientId":
-                    sortedOrders = sortedOrders.OrderBy(s => s.clientId);
-                    break;
-                case "clientId_desc":
-                    sortedOrders = sortedOrders.OrderByDescending(s => s.clientId);
-                    break;
-                case "requestId":
-                    sortedOrders = sortedOrders.OrderBy(s => s.requestId);
-                    break;
-                case "requestId_desc":
-                    sortedOrders = sortedOrders.OrderByDescending(s => s.requestId);
-                    break;
-                default:
-                    sortedOrders = sortedOrders.OrderBy(s => s.requestId);
-                    break;
+                version++;
+
+                file = path + "/listofordersbetween(" + version.ToString() + ").csv";
             }
 
-            return (IActionResult)View(new VM()
+            using (var writer = new StreamWriter(file))
+            using (var csv = new CsvWriter(writer))
             {
-                AllOrdersModel = sortedOrders,
-                FromValue = FromValue,
-                ToValue = ToValue
-            });
+                //csv.WriteRecords(_context.Orders.ToList().Where(i => i.clientId == clientId));
+                csv.WriteRecords(sortedOrders);
+
+            }
+            return RedirectToAction("Index");
         }
 
+        #endregion
 
 
-
+        #region Dodawanie plików
         public async Task<IActionResult> Post([Bind("Id,clientId,requestId,name,quantity,price")] Order order, List<IFormFile> files)
         {
 
@@ -354,16 +515,13 @@ namespace csv_xml_json_reader.Controllers
 
             Order oneOrderEx = new Order();
 
-            //
-           
-
 
             foreach (var file in files)
             {
 
                     if (file.FileName.Contains(".json"))
                     {
-                        index = 0;
+                        indexOfOrder = 0;
                         var result = string.Empty;
 
                         using (var reader = new StreamReader(file.OpenReadStream()))
@@ -391,7 +549,7 @@ namespace csv_xml_json_reader.Controllers
 
                     if (file.FileName.Contains(".xml"))
                     {
-                        index = 0;
+                        indexOfOrder = 0;
                         var result = string.Empty;
 
                         using (var reader = new StreamReader(file.OpenReadStream()))
@@ -434,7 +592,7 @@ namespace csv_xml_json_reader.Controllers
                         }
             }
 
-                if (file.FileName.Contains(".csv"))
+                    if (file.FileName.Contains(".csv"))
                 {
 
                     var regClientId = new Regex(@"^(?=.{1,6}$)^[a-zA-Z0-9]*$");
@@ -444,7 +602,7 @@ namespace csv_xml_json_reader.Controllers
 
                     try
                     {
-                        index = 0;
+                        indexOfOrder = 0;
                         using (var reader = new StreamReader(file.OpenReadStream()))
                         using (var csv = new CsvReader(reader))
                         {
@@ -455,7 +613,7 @@ namespace csv_xml_json_reader.Controllers
                             foreach (var item in records)
                             {
 
-                                index++;
+                                indexOfOrder++;
 
                                 if (regClientId.IsMatch(item.Client_Id) && item.Request_id != 0 && regName.IsMatch(item.Name))
                                 {
@@ -474,7 +632,7 @@ namespace csv_xml_json_reader.Controllers
                                 else
                                 {
                                     exception_bool = true;
-                                    expecion_string.Add("Błąd w pliku " + file.FileName + " w rekordzie " + index.ToString());
+                                    expecion_string.Add("Błąd w pliku " + file.FileName + " w rekordzie " + indexOfOrder.ToString());
 
                                 }
                             }
@@ -508,7 +666,7 @@ namespace csv_xml_json_reader.Controllers
             var regClientId = new Regex(@"^(?=.{1,6}$)^[a-zA-Z0-9]*$");
             var regName = new Regex(@"^(?=.{1,255}$)");
 
-            index++;
+            indexOfOrder++;
 
             if (regClientId.IsMatch(item.clientId) && item.requestId != 0 && regName.IsMatch(item.name))
             {
@@ -527,10 +685,12 @@ namespace csv_xml_json_reader.Controllers
             else
             {
                 exception_bool = true;
-                expecion_string.Add("Błąd w pliku " + file.FileName + " w rekordzie " + index.ToString());
+                expecion_string.Add("Błąd w pliku " + file.FileName + " w rekordzie " + indexOfOrder.ToString());
 
             }
         }
+
+        #endregion
 
         public IActionResult Error(List<string> error_string)
         {

@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace csv_xml_json_reader.Models
 {
+    //Zamówienie bez ID
     public class OrderNoId
     {
-      
-        
+           
         //max 6 alfanumerycznie
         public string Client_Id { get; set; }
 

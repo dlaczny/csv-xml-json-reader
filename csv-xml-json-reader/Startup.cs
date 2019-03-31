@@ -28,7 +28,10 @@ namespace csv_xml_json_reader
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase());
+            //services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase());
+
+            services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("Database"));
+
 
             //services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
